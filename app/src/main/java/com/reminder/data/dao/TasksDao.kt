@@ -16,9 +16,6 @@ interface TasksDao {
     suspend fun updateTask(task: TaskEntity)
 
     @Query("select * from taskentity")
-    suspend fun getAllTasks(): List<TaskEntity>
-
-    @Query("select * from taskentity")
     fun getAllTasksFlow(): Flow<List<TaskEntity>>
 
     @Query("select * from taskentity where id = :taskId")

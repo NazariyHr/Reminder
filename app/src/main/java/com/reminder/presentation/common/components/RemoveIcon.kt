@@ -1,4 +1,4 @@
-package com.reminder.presentation.features.task_list.components
+package com.reminder.presentation.common.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size

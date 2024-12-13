@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.reminder.domain.model.Task
+import com.reminder.presentation.common.components.RemoveIcon
 import com.reminder.presentation.common.theme.ReminderTheme
 import com.reminder.presentation.common.utils.formatToDateAndTime
 import java.util.Calendar
