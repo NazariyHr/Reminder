@@ -16,6 +16,10 @@ class TasksRepositoryImpl(
         localDataBase.tasksDao.getAllTasksFlow().distinctUntilChanged()
             .map { taskEntities -> taskEntities.map { taskEntity -> taskEntity.toTask() } }
 
+    override suspend fun getTaskById(taskId: Int): Task? {
+        return localDataBase.tasksDao.getTaskById(taskId)?.toTask()
+    }
+
     override suspend fun addNewTask(name: String, description: String?, remindTime: Long?) {
         localDataBase.tasksDao.insert(
             TaskEntity(

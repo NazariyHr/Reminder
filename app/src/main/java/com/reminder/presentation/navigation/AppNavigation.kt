@@ -47,7 +47,7 @@ fun AppNavigation(
                 TaskListScreenRoot(navController)
             }
             composableNoTransition<Screen.TaskDetails> {
-                TaskDetailsScreenRoot(navController)
+                TaskDetailsScreenRoot()
             }
             composableNoTransition<Screen.AddTask> {
                 AddTaskScreenRoot(navController)
