@@ -7,8 +7,8 @@ interface TasksRepository {
     fun getAllTasksFlow(): Flow<List<Task>>
     suspend fun addNewTask(
         name: String,
-        description: String,
-        remindTime: Long
+        description: String?,
+        remindTime: Long?
     )
 
     suspend fun updateTask(updatedTask: Task)

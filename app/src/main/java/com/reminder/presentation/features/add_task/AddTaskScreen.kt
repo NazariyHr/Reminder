@@ -68,6 +68,9 @@ fun AddTaskScreen(
     var name by rememberSaveable {
         mutableStateOf("")
     }
+    var nameFieldError by rememberSaveable {
+        mutableStateOf("")
+    }
     var description by rememberSaveable {
         mutableStateOf("")
     }
@@ -138,13 +141,24 @@ fun AddTaskScreen(
                 label = {
                     Text(
                         modifier = Modifier,
-                        text = "Name",
+                        text = "Name *",
                         style = MaterialTheme.typography.titleMedium
                     )
                 },
+                isError = nameFieldError.isNotEmpty(),
+                supportingText = if (nameFieldError.isNotEmpty()) {
+                    {
+                        Text(
+                            modifier = Modifier,
+                            text = nameFieldError,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                } else null,
                 value = name,
                 onValueChange = {
                     name = it
+                    nameFieldError = ""
                 }
             )
             OutlinedTextField(
@@ -220,21 +234,48 @@ fun AddTaskScreen(
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
                 onClick = {
-                    val c = Calendar.getInstance().apply {
-                        timeInMillis = remindDate
-                        val cTime = Calendar.getInstance().apply { timeInMillis = remindTime }
-                        set(Calendar.HOUR_OF_DAY, cTime.get(Calendar.HOUR_OF_DAY))
-                        set(Calendar.MINUTE, cTime.get(Calendar.MINUTE))
-                        set(Calendar.SECOND, 0)
-                        set(Calendar.MILLISECOND, 0)
-                    }
-                    onAction.invoke(
-                        AddTaskScreenActions.AddTask(
-                            name = name,
-                            description = description,
-                            remindDateAnTime = c.timeInMillis
+                    if (name.isEmpty()) {
+                        nameFieldError = "Enter name of task"
+                    } else {
+                        var remindDateAnTimeCalendar: Calendar? = null
+                        if (remindDate != 0L) {
+                            remindDateAnTimeCalendar = Calendar.getInstance().apply {
+                                timeInMillis = remindDate
+                                set(Calendar.HOUR_OF_DAY, 0)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                        }
+                        if (remindTime != 0L) {
+                            if (remindDateAnTimeCalendar == null) {
+                                remindDateAnTimeCalendar = Calendar.getInstance().apply {
+                                    set(Calendar.HOUR_OF_DAY, 0)
+                                    set(Calendar.MINUTE, 0)
+                                    set(Calendar.SECOND, 0)
+                                    set(Calendar.MILLISECOND, 0)
+                                }
+                            }
+                            val remindTimeCalendar =
+                                Calendar.getInstance().apply { timeInMillis = remindTime }
+                            remindDateAnTimeCalendar?.set(
+                                Calendar.HOUR_OF_DAY,
+                                remindTimeCalendar.get(Calendar.HOUR_OF_DAY)
+                            )
+                            remindDateAnTimeCalendar?.set(
+                                Calendar.MINUTE,
+                                remindTimeCalendar.get(Calendar.MINUTE)
+                            )
+                        }
+
+                        onAction.invoke(
+                            AddTaskScreenActions.AddTask(
+                                name = name,
+                                description = description.ifEmpty { null },
+                                remindDateAnTime = remindDateAnTimeCalendar?.timeInMillis
+                            )
                         )
-                    )
+                    }
                 }
             ) {
                 Text(text = "Save")

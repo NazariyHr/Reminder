@@ -56,28 +56,32 @@ fun TaskItem(
                 text = task.name,
                 style = MaterialTheme.typography.titleMedium
             )
-            Text(
-                modifier = Modifier
-                    .padding(top = 2.dp),
-                text = task.description,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Row(
-                modifier = Modifier
-                    .padding(top = 2.dp)
-            ) {
+            if(task.description != null){
                 Text(
                     modifier = Modifier
-                        .align(Alignment.Bottom)
-                        .padding(end = 2.dp),
-                    text = "remind time:",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                        .padding(top = 2.dp),
+                    text = task.description,
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Text(
-                    text = task.remindTime.formatToDateAndTime(),
-                    style = MaterialTheme.typography.bodySmall
-                )
+            }
+            if(task.remindTime != null){
+                Row(
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.Bottom)
+                            .padding(end = 2.dp),
+                        text = "remind time:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = task.remindTime.formatToDateAndTime(),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
         RemoveIcon(
