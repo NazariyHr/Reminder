@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.reminder.domain.repository.TasksRepository
+import com.reminder.domain.use_cases.RemoveTaskUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -13,7 +14,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TaskListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val tasksRepository: TasksRepository
+    private val tasksRepository: TasksRepository,
+    private val removeTaskUseCase: RemoveTaskUseCase
 ) : ViewModel() {
     companion object {
         const val STATE_KEY = "TaskListViewModel_state"
@@ -41,7 +43,7 @@ class TaskListViewModel @Inject constructor(
         when (action) {
             is TaskListScreenActions.HandledInViewModel.OnRemoveTaskClicked -> {
                 viewModelScope.launch {
-                    tasksRepository.removeTask(action.taskId)
+                    removeTaskUseCase(action.taskId)
                 }
             }
         }

@@ -20,14 +20,15 @@ class TasksRepositoryImpl(
         return localDataBase.tasksDao.getTaskById(taskId)?.toTask()
     }
 
-    override suspend fun addNewTask(name: String, description: String?, remindTime: Long?) {
-        localDataBase.tasksDao.insert(
+    override suspend fun addNewTask(name: String, description: String?, remindTime: Long?): Task {
+        val createdTaskId = localDataBase.tasksDao.insert(
             TaskEntity(
                 name = name,
                 description = description,
                 remindTime = remindTime
             )
         )
+        return localDataBase.tasksDao.getTaskById(createdTaskId.toInt())!!.toTask()
     }
 
     override suspend fun updateTask(updatedTask: Task) {

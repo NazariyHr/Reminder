@@ -2,7 +2,7 @@ package com.reminder.presentation.features.add_task
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.reminder.domain.repository.TasksRepository
+import com.reminder.domain.use_cases.CreateNewTaskUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddTaskViewModel @Inject constructor(
-    private val tasksRepository: TasksRepository
+    private val createNewTaskUseCase: CreateNewTaskUseCase
 ) : ViewModel() {
 
     private val events = Channel<AddTaskScreenEvents>()
@@ -21,7 +21,7 @@ class AddTaskViewModel @Inject constructor(
         when (action) {
             is AddTaskScreenActions.AddTask -> {
                 viewModelScope.launch {
-                    tasksRepository.addNewTask(
+                    createNewTaskUseCase(
                         action.name,
                         action.description,
                         action.remindDateAnTime

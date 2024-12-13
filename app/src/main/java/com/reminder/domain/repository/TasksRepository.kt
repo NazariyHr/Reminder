@@ -10,7 +10,7 @@ interface TasksRepository {
         name: String,
         description: String?,
         remindTime: Long?
-    )
+    ): Task
 
     suspend fun updateTask(updatedTask: Task)
     suspend fun removeTask(taskId: Int)
