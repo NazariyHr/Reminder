@@ -12,3 +12,17 @@ fun Long.formatToDateAndTime(): String {
     val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     return dateFormat.format(date)
 }
+
+fun Long.formatDate(): String {
+    val timeToConvert = this
+    val date: Date = Calendar.getInstance().apply { timeInMillis = timeToConvert }.time
+    val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    return dateFormat.format(date)
+}
+
+fun Long.formatTime(): String {
+    val timeToConvert = this
+    val date: Date = Calendar.getInstance().apply { timeInMillis = timeToConvert }.time
+    val dateFormat: DateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    return dateFormat.format(date)
+}

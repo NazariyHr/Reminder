@@ -8,7 +8,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,28 +37,12 @@ class TaskListViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    fun onAction(action: TaskListScreenActions) {
+    fun onAction(action: TaskListScreenActions.HandledInViewModel) {
         when (action) {
-            TaskListScreenActions.OnAddNewTaskClicked -> {
-                viewModelScope.launch {
-                    val tasksCount = stateValue.tasks.count()
-                    val currentTime = Calendar.getInstance().timeInMillis
-                    tasksRepository.addNewTask(
-                        "Task ${tasksCount + 1}",
-                        "description for task ${tasksCount + 1}",
-                        currentTime
-                    )
-                }
-            }
-
-            is TaskListScreenActions.OnRemoveTaskClicked -> {
+            is TaskListScreenActions.HandledInViewModel.OnRemoveTaskClicked -> {
                 viewModelScope.launch {
                     tasksRepository.removeTask(action.taskId)
                 }
-            }
-
-            is TaskListScreenActions.OnTaskDetailsClicked -> {
-                // handled in screen root
             }
         }
     }

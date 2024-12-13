@@ -1,24 +1,34 @@
 package com.reminder.presentation.features.add_task
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.reminder.domain.repository.TasksRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AddTaskViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle
+    private val tasksRepository: TasksRepository
 ) : ViewModel() {
-    companion object {
-        const val STATE_KEY = "AddTaskViewModel_state"
-    }
 
-    private var stateValue: AddTaskScreenState
-        set(value) {
-            savedStateHandle[STATE_KEY] = value
+    private val events = Channel<AddTaskScreenEvents>()
+    val eventsFlow = events.receiveAsFlow()
+
+    fun onAction(action: AddTaskScreenActions) {
+        when (action) {
+            is AddTaskScreenActions.AddTask -> {
+                viewModelScope.launch {
+                    tasksRepository.addNewTask(
+                        action.name,
+                        action.description,
+                        action.remindDateAnTime
+                    )
+                    events.send(AddTaskScreenEvents.OnTaskAddedSuccessfully)
+                }
+            }
         }
-        get() {
-            return savedStateHandle.get<AddTaskScreenState>(STATE_KEY)!!
-        }
-    val state = savedStateHandle.getStateFlow(STATE_KEY, AddTaskScreenState())
+    }
 }

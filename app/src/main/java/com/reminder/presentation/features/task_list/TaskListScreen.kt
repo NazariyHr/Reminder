@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,16 +41,18 @@ fun TaskListScreenRoot(
     TaskListScreen(
         state = state,
         onAction = { action ->
-            when (action) {
-                TaskListScreenActions.OnAddNewTaskClicked -> {
-                    viewModel.onAction(action)
-                }
+            if (action is TaskListScreenActions.HandledInRoot) {
+                when (action) {
+                    TaskListScreenActions.HandledInRoot.OnAddNewTaskClicked -> {
+                        navController.navigate(Screen.AddTask)
+                    }
 
-                is TaskListScreenActions.OnTaskDetailsClicked -> {
-                    navController.navigate(Screen.TaskDetails(action.taskId))
+                    is TaskListScreenActions.HandledInRoot.OnTaskDetailsClicked -> {
+                        navController.navigate(Screen.TaskDetails(action.taskId))
+                    }
                 }
-
-                is TaskListScreenActions.OnRemoveTaskClicked -> viewModel.onAction(action)
+            } else if (action is TaskListScreenActions.HandledInViewModel) {
+                viewModel.onAction(action)
             }
         }
     )
@@ -71,22 +76,12 @@ fun TaskListScreen(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "TaskList",
+                text = "My tasks",
                 textAlign = TextAlign.Center
             )
 
-            Button(onClick = {
-                onAction.invoke(TaskListScreenActions.OnAddNewTaskClicked)
-            }) {
-                Text(text = "Add task")
-            }
-
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = "Tasks:",
-                textAlign = TextAlign.Start
-            )
             LazyColumn(
+                modifier = Modifier.padding(top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 items(state.tasks) { task ->
@@ -94,14 +89,36 @@ fun TaskListScreen(
                         task = task,
                         modifier = Modifier
                             .clickable {
-                                onAction.invoke(TaskListScreenActions.OnTaskDetailsClicked(task.id))
+                                onAction.invoke(
+                                    TaskListScreenActions.HandledInRoot.OnTaskDetailsClicked(
+                                        task.id
+                                    )
+                                )
                             }
                             .fillMaxWidth(),
                         onRemoveClicked = {
-                            onAction(TaskListScreenActions.OnRemoveTaskClicked(task.id))
+                            onAction(
+                                TaskListScreenActions.HandledInViewModel.OnRemoveTaskClicked(
+                                    task.id
+                                )
+                            )
                         }
                     )
                 }
+            }
+
+            Button(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+                onClick = {
+                    onAction.invoke(TaskListScreenActions.HandledInRoot.OnAddNewTaskClicked)
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add new task",
+                )
             }
         }
     }
