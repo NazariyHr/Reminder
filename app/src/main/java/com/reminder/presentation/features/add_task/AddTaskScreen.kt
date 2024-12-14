@@ -1,16 +1,22 @@
 package com.reminder.presentation.features.add_task
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AlarmManager
+import android.app.AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +26,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +34,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -70,6 +78,7 @@ fun AddTaskScreenRoot(
     )
 }
 
+@SuppressLint("BatteryLife")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskScreen(
@@ -121,14 +130,81 @@ fun AddTaskScreen(
         mutableStateOf(false)
     }
 
+    var showAllowExactAlarmPermissions by remember {
+        mutableStateOf(false)
+    }
+
+    var showTurnOffBatteryOptimisation by remember {
+        mutableStateOf(false)
+    }
+
     val c = LocalContext.current
+
+    fun requestBatteryOptimisationOff() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+            intent.setData(Uri.parse("package:${c.packageName}"))
+            c.startActivity(intent)
+        }
+    }
+
+    fun checkBatteryOptimisation() {
+        val powerManager = c.getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            !powerManager.isIgnoringBatteryOptimizations(c.packageName)
+        ) {
+            showTurnOffBatteryOptimisation = true
+        }
+    }
+
+    fun openExactAlarmSettings() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = c.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val scheduleExactAlarmPermissionChangeReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    when (intent?.action) {
+                        ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
+                            c.unregisterReceiver(this)
+                            if (alarmManager.canScheduleExactAlarms()) {
+                                checkBatteryOptimisation()
+                            }
+                        }
+                    }
+                }
+            }
+            ContextCompat.registerReceiver(
+                c,
+                scheduleExactAlarmPermissionChangeReceiver,
+                IntentFilter(ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED),
+                ContextCompat.RECEIVER_EXPORTED
+            )
+
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+            c.startActivity(intent)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    fun checkExactAlarmPermissions() {
+        val alarmManager = c.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            showAllowExactAlarmPermissions = true
+        } else {
+            checkBatteryOptimisation()
+        }
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-        onResult = { hasNotificationPermission = it }
+        onResult = { permissionGranted ->
+            hasNotificationPermission = permissionGranted
+            if (permissionGranted) {
+                checkExactAlarmPermissions()
+            }
+        }
     )
 
-    LaunchedEffect(key1 = true) {
+    fun checkNotificationPermissions() {
         hasNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
                 c,
@@ -140,26 +216,7 @@ fun AddTaskScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            val alarmManager = c.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-                Toast.makeText(
-                    c,
-                    "Please grant permissions to exact reminders",
-                    Toast.LENGTH_SHORT
-                )
-                    .show()
-                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                c.startActivity(intent)
-            } else {
-                val powerManager = c.getSystemService(Context.POWER_SERVICE) as PowerManager
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && powerManager.isIgnoringBatteryOptimizations(
-                        c.packageName
-                    )
-                ) {
-                    val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                    c.startActivity(intent)
-                }
-            }
+            checkExactAlarmPermissions()
         }
     }
 
@@ -170,6 +227,10 @@ fun AddTaskScreen(
                 onTaskAdded()
             }
         }
+    }
+
+    LaunchedEffect(key1 = true) {
+        checkNotificationPermissions()
     }
 
     Scaffold { paddingValues ->
@@ -362,6 +423,66 @@ fun AddTaskScreen(
                     },
                     onDismiss = {
                         showTimePicker = false
+                    }
+                )
+            }
+            AnimatedVisibility(showAllowExactAlarmPermissions) {
+                AlertDialog(
+                    title = {
+                        Text(text = "Please allow exact alarms in settings")
+                    },
+                    text = {
+                        Text(text = "It needs to work properly for notification reminders.")
+                    },
+                    onDismissRequest = {},
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showAllowExactAlarmPermissions = false
+                                openExactAlarmSettings()
+                            }
+                        ) {
+                            Text("settings")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showAllowExactAlarmPermissions = false
+                            }
+                        ) {
+                            Text("cancel")
+                        }
+                    }
+                )
+            }
+            AnimatedVisibility(showTurnOffBatteryOptimisation) {
+                AlertDialog(
+                    title = {
+                        Text(text = "Please turn off battery optimisation")
+                    },
+                    text = {
+                        Text(text = "It needs to work properly for notification reminders.")
+                    },
+                    onDismissRequest = {},
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showTurnOffBatteryOptimisation = false
+                                requestBatteryOptimisationOff()
+                            }
+                        ) {
+                            Text("ok")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showTurnOffBatteryOptimisation = false
+                            }
+                        ) {
+                            Text("cancel")
+                        }
                     }
                 )
             }
