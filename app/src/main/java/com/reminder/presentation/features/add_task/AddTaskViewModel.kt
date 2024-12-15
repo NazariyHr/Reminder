@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,5 +32,39 @@ class AddTaskViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun AddTaskScreenActions.AddTask.RemindDateAnTime.formatToDateAndTime(): String? {
+        var remindDateAnTimeCalendar: Calendar? = null
+        if (remindDate != null) {
+            remindDateAnTimeCalendar = Calendar.getInstance().apply {
+                timeInMillis = remindDate
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+        }
+        if (remindTime != null) {
+            if (remindDateAnTimeCalendar == null) {
+                remindDateAnTimeCalendar = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+            }
+            val remindTimeCalendar =
+                Calendar.getInstance().apply { timeInMillis = remindTime }
+            remindDateAnTimeCalendar?.set(
+                Calendar.HOUR_OF_DAY,
+                remindTimeCalendar.get(Calendar.HOUR_OF_DAY)
+            )
+            remindDateAnTimeCalendar?.set(
+                Calendar.MINUTE,
+                remindTimeCalendar.get(Calendar.MINUTE)
+            )
+        }
+        return remindDateAnTimeCalendar?.timeInMillis?.formatToDateAndTime()
     }
 }

@@ -352,42 +352,14 @@ fun AddTaskScreen(
                     if (name.isEmpty()) {
                         nameFieldError = "Enter name of task"
                     } else {
-                        var remindDateAnTimeCalendar: Calendar? = null
-                        if (remindDate != 0L) {
-                            remindDateAnTimeCalendar = Calendar.getInstance().apply {
-                                timeInMillis = remindDate
-                                set(Calendar.HOUR_OF_DAY, 0)
-                                set(Calendar.MINUTE, 0)
-                                set(Calendar.SECOND, 0)
-                                set(Calendar.MILLISECOND, 0)
-                            }
-                        }
-                        if (remindTime != 0L) {
-                            if (remindDateAnTimeCalendar == null) {
-                                remindDateAnTimeCalendar = Calendar.getInstance().apply {
-                                    set(Calendar.HOUR_OF_DAY, 0)
-                                    set(Calendar.MINUTE, 0)
-                                    set(Calendar.SECOND, 0)
-                                    set(Calendar.MILLISECOND, 0)
-                                }
-                            }
-                            val remindTimeCalendar =
-                                Calendar.getInstance().apply { timeInMillis = remindTime }
-                            remindDateAnTimeCalendar?.set(
-                                Calendar.HOUR_OF_DAY,
-                                remindTimeCalendar.get(Calendar.HOUR_OF_DAY)
-                            )
-                            remindDateAnTimeCalendar?.set(
-                                Calendar.MINUTE,
-                                remindTimeCalendar.get(Calendar.MINUTE)
-                            )
-                        }
-
                         onAction.invoke(
                             AddTaskScreenActions.AddTask(
                                 name = name,
                                 description = description.ifEmpty { null },
-                                remindDateAnTime = remindDateAnTimeCalendar?.timeInMillis
+                                remindDateAnTime = AddTaskScreenActions.AddTask.RemindDateAnTime(
+                                    remindDate = remindDate.takeIf { it != 0L },
+                                    remindTime = remindTime.takeIf { it != 0L }
+                                )
                             )
                         )
                     }
