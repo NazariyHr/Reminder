@@ -11,7 +11,7 @@ data class CreateNewTaskUseCase @Inject constructor(
     suspend operator fun invoke(
         name: String,
         description: String?,
-        remindTime: Long?
+        remindTime: String?
     ) {
         val createdTask = tasksRepository.addNewTask(name, description, remindTime)
         taskReminderScheduler.scheduleTaskReminder(createdTask)

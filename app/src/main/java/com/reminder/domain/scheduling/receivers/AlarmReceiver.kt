@@ -1,4 +1,4 @@
-package com.reminder.domain.scheduling
+package com.reminder.domain.scheduling.receivers
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -12,6 +12,8 @@ import com.reminder.domain.model.Task
 
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
+        const val ACTION_ALARM_TRIGGERED = "com.reminder.ACTION_ALARM_TRIGGERED"
+
         const val NOTIFICATION_CHANNEL_ID = "reminders"
         const val NOTIFICATION_CHANNEL_NAME = "Task reminders"
 
@@ -19,7 +21,7 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == SchedulingConstants.ACTION_ALARM_TRIGGERED) {
+        if (intent.action == ACTION_ALARM_TRIGGERED) {
             val task = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra(EXTRA_TASK, Task::class.java)
             } else {

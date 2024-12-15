@@ -3,6 +3,7 @@ package com.reminder.presentation.features.add_task
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.reminder.domain.use_cases.CreateNewTaskUseCase
+import com.reminder.presentation.common.utils.formatToDateAndTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -24,7 +25,7 @@ class AddTaskViewModel @Inject constructor(
                     createNewTaskUseCase(
                         action.name,
                         action.description,
-                        action.remindDateAnTime
+                        action.remindDateAnTime?.formatToDateAndTime()
                     )
                     events.send(AddTaskScreenEvents.OnTaskAddedSuccessfully)
                 }

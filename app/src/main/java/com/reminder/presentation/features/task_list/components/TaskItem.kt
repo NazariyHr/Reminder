@@ -79,7 +79,7 @@ fun TaskItem(
                         color = Color.Gray
                     )
                     Text(
-                        text = task.remindTime.formatToDateAndTime(),
+                        text = task.remindTime,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -90,7 +90,7 @@ fun TaskItem(
                 .clickable {
                     onRemoveClicked()
                 }
-                .padding(top = 2.dp, end = 2.dp)
+                .padding(4.dp)
                 .size(12.dp)
                 .align(Alignment.TopEnd)
         )
@@ -100,7 +100,7 @@ fun TaskItem(
 @Preview
 @Composable
 fun TaskItemPreview() {
-    val remindTime = Calendar.getInstance().timeInMillis
+    val remindTime = Calendar.getInstance().timeInMillis.formatToDateAndTime()
     ReminderTheme {
         TaskItem(
             task = Task(

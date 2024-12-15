@@ -23,6 +23,7 @@ import com.reminder.domain.model.Task
 import com.reminder.presentation.common.theme.MainBgColor
 import com.reminder.presentation.common.theme.ReminderTheme
 import com.reminder.presentation.common.utils.formatToDateAndTime
+import java.util.Calendar
 
 @Composable
 fun TaskDetailsScreenRoot(
@@ -79,7 +80,7 @@ fun TaskDetailsScreen(
                                 color = Color.Gray
                             )
                             Text(
-                                text = state.task.remindTime.formatToDateAndTime(),
+                                text = state.task.remindTime,
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -100,7 +101,7 @@ private fun TaskDetailsPreview() {
                     id = 123,
                     name = "Do some job",
                     description = "description of task",
-                    remindTime = 11111L
+                    remindTime = Calendar.getInstance().timeInMillis.formatToDateAndTime()
                 )
             )
         )

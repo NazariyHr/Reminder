@@ -13,7 +13,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -223,7 +222,6 @@ fun AddTaskScreen(
     ObserveAsEvent(flow = events) { event ->
         when (event) {
             AddTaskScreenEvents.OnTaskAddedSuccessfully -> {
-                Toast.makeText(c, "Task saved", Toast.LENGTH_SHORT).show()
                 onTaskAdded()
             }
         }

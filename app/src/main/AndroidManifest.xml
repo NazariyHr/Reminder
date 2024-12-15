@@ -9,6 +9,7 @@
          a possibility to turn off exact alarms in settings.
          -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".ReminderApp"
@@ -34,8 +35,26 @@
         </activity>
 
         <receiver
-            android:name=".domain.scheduling.AlarmReceiver"
+            android:name=".domain.scheduling.receivers.AlarmReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".domain.scheduling.receivers.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".domain.scheduling.receivers.TimeZoneChangeReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

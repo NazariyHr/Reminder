@@ -8,5 +8,6 @@ sealed class TaskListScreenActions {
 
     sealed class HandledInViewModel : TaskListScreenActions() {
         data class OnRemoveTaskClicked(val taskId: Int) : HandledInViewModel()
+        data object OnClearLogClicked : HandledInViewModel()
     }
 }

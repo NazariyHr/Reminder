@@ -12,6 +12,11 @@ import kotlinx.coroutines.flow.map
 class TasksRepositoryImpl(
     private val localDataBase: LocalDataBase
 ) : TasksRepository {
+
+    override suspend fun getAllTasks(): List<Task> {
+        return localDataBase.tasksDao.getAllTasks().map { taskEntity -> taskEntity.toTask() }
+    }
+
     override fun getAllTasksFlow(): Flow<List<Task>> =
         localDataBase.tasksDao.getAllTasksFlow().distinctUntilChanged()
             .map { taskEntities -> taskEntities.map { taskEntity -> taskEntity.toTask() } }
@@ -20,7 +25,7 @@ class TasksRepositoryImpl(
         return localDataBase.tasksDao.getTaskById(taskId)?.toTask()
     }
 
-    override suspend fun addNewTask(name: String, description: String?, remindTime: Long?): Task {
+    override suspend fun addNewTask(name: String, description: String?, remindTime: String?): Task {
         val createdTaskId = localDataBase.tasksDao.insert(
             TaskEntity(
                 name = name,

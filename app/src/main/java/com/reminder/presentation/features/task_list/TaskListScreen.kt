@@ -1,5 +1,8 @@
 package com.reminder.presentation.features.task_list
 
+import android.app.Activity.CLIPBOARD_SERVICE
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,10 +29,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.reminder.domain.model.Task
+import com.reminder.presentation.common.components.event_handling.ObserveAsEvent
 import com.reminder.presentation.common.theme.MainBgColor
 import com.reminder.presentation.common.theme.ReminderTheme
+import com.reminder.presentation.common.utils.formatToDateAndTime
 import com.reminder.presentation.features.task_list.components.TaskItem
 import com.reminder.presentation.navigation.Screen
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.util.Calendar
 
 @Composable
@@ -40,6 +48,7 @@ fun TaskListScreenRoot(
     val state by viewModel.state.collectAsStateWithLifecycle()
     TaskListScreen(
         state = state,
+        events = viewModel.eventsFlow,
         onAction = { action ->
             if (action is TaskListScreenActions.HandledInRoot) {
                 when (action) {
@@ -61,8 +70,22 @@ fun TaskListScreenRoot(
 @Composable
 fun TaskListScreen(
     state: TaskListScreenState,
+    events: Flow<TaskListScreenEvents>,
     onAction: (TaskListScreenActions) -> Unit
 ) {
+    val c = LocalContext.current
+    ObserveAsEvent(flow = events) { event ->
+        when (event) {
+            is TaskListScreenEvents.OnLogLoaded -> {
+                val clipboard: ClipboardManager = c.getSystemService(
+                    CLIPBOARD_SERVICE
+                ) as ClipboardManager
+                val clip = ClipData.newPlainText("Log", event.log)
+                clipboard.setPrimaryClip(clip)
+            }
+        }
+    }
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -105,20 +128,42 @@ fun TaskListScreen(
                         }
                     )
                 }
-            }
 
-            Button(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth(),
-                onClick = {
-                    onAction.invoke(TaskListScreenActions.HandledInRoot.OnAddNewTaskClicked)
+                item {
+                    Button(
+                        modifier = Modifier
+                            .padding(top = 2.dp)
+                            .fillMaxWidth(),
+                        onClick = {
+                            onAction.invoke(TaskListScreenActions.HandledInRoot.OnAddNewTaskClicked)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Add new task",
+                        )
+                    }
                 }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Add new task",
-                )
+
+                item {
+                    if (state.showLog && state.schedulingLog.isNotEmpty()) {
+                        Button(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            onClick = {
+                                onAction.invoke(TaskListScreenActions.HandledInViewModel.OnClearLogClicked)
+                            }
+                        ) {
+                            Text(text = "Clear log")
+                        }
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            text = state.schedulingLog
+                        )
+                    }
+                }
             }
         }
     }
@@ -128,7 +173,7 @@ fun TaskListScreen(
 @Composable
 private fun TaskListScreenPreview() {
     val tasks = mutableListOf<Task>()
-    val remindTime = Calendar.getInstance().timeInMillis
+    val remindTime = Calendar.getInstance().timeInMillis.formatToDateAndTime()
     var nextId = 1
 
     repeat(5) {
@@ -147,6 +192,7 @@ private fun TaskListScreenPreview() {
             state = TaskListScreenState(
                 tasks = tasks
             ),
+            events = flowOf(),
             onAction = {}
         )
     }

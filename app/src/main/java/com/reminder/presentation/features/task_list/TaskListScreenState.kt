@@ -6,5 +6,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class TaskListScreenState(
-    val tasks: List<Task> = emptyList()
+    val tasks: List<Task> = emptyList(),
+    val schedulingLog: String = "",
+    val showLog: Boolean = true //set false if you don't want to see logs from alerts scheduling
 ) : Parcelable

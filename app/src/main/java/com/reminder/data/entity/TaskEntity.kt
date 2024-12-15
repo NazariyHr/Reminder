@@ -9,5 +9,5 @@ data class TaskEntity(
     val id: Int = 0,
     val name: String,
     val description: String?,
-    val remindTime: Long?
+    val remindTime: String?
 )
