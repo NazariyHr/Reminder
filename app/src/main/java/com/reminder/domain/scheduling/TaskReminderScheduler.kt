@@ -1,5 +1,6 @@
 package com.reminder.domain.scheduling
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -13,6 +14,7 @@ class TaskReminderScheduler @Inject constructor(
 ) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
+    @SuppressLint("MissingPermission")
     fun scheduleTaskReminder(task: Task) {
         if (task.remindTime == null) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

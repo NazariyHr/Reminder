@@ -42,6 +42,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Channel for reminders notifications"
+                enableVibration(true)
             }
             notificationManager.createNotificationChannel(channel)
         }
